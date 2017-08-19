@@ -27,6 +27,23 @@ def mp_search(search_str):
 def format_mp_result(search_result):
     return search_result
 
+
+
+def reply_exp(comment, message):
+    sent = False
+    for backoff in range(0, 10):
+        try:
+            return comment.reply(message)
+        except:
+            if (backoff == 0):
+                # sleep for 8 minutes, we were rate limied probably
+                sleep(482)
+            else:
+                sleep (backoff*backoff)
+
+            
+    
+
 def get_reddit_client():
     # TODO: configurable
     return praw.Reddit(user_agent='route_bot 0.1',
@@ -39,14 +56,14 @@ def get_reddit_client():
 def Run():
     # Main business logic 
     print("Running app...")
-    bot = get_reddit_client()
-    commenter = Commenter(bot)
+    reddit_client = get_reddit_client()
+    commenter = Commenter(reddit_client)
     
     print("Reddit Client loaded successfully")
 
 
     # TODO: Make this the right reddit/configurable
-    subreddit = bot.subreddit('routebottest')
+    subreddit = reddit_client.subreddit('routebottest')
 
     comments = subreddit.stream.comments()
     print("Searching through comments...")
@@ -60,8 +77,8 @@ def Run():
 
         reply_str = parse_reply(text, bot_call_str)
         if reply_str:
-            # reply with result
-            comment.reply(reply_str)
+            # reply with result, waits 8 minutes if ratelimited
+            reply_exp(comment, reply_str)
 
         # Don't do anything if we can't find a good result
     print("Finished comment search")
